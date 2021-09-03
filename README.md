@@ -41,7 +41,7 @@ server {
 }
 ```
 
-## Step 6
+## Step 5
 Write redirect for microservices to the file nginx.conf
 ```
 location /service1 {
@@ -53,8 +53,51 @@ location /service2 {
 }
 ```
 
-## Step 5
+## Step 6
 Build and run the project.
 ```
 npm run start
+```
+
+## Step 7
+If you want to add self-signed certificate to nginx complete the following steps.
+- generate the certificate and private key (use Git Bash and create the directories):
+```
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout "C:\nginx-1.21.1\ssl\private\nginx.key" -out "C:\nginx-1.21.1\ssl\certs\nginx.crt"
+```
+Where:
+*req* — the command to use X.509;
+*x509* — the command to create the self-signed certificate;
+*nodes* — the command to miss the password phrase;
+*days* — the command to set the validity of the certificate;
+*newkey* (rsa:2048) — the command to generate the nwe private key with RSA algorithm for 2048 bit;
+*keyout* — the location of the private key;
+*out* - the location of the certificate.
+
+Warning! CN= your domain name (localhost)
+
+- add to nginx.conf file:
+```
+server {
+  server_name localhost;
+  listen 8080;
+  listen 443 ssl;
+  
+  ssl_certificate  ../ssl/certs/nginx.crt;
+  ssl_certificate_key ../ssl/private/nginx.key;
+  
+  location / {
+      root html;
+      index index.html index.htm;
+  }
+  
+  location /service1 {
+        proxy_pass      https://localhost:8090/service1;     
+  }
+
+  location /service2 {
+        proxy_pass      https://localhost:8091/service2;     
+  }
+  ...
+}
 ```
